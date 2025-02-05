@@ -1,0 +1,48 @@
+#include <SoftwareSerial.h>
+
+SoftwareSerial BTSerial(0, 1); // RX, TX for Bluetooth
+
+const int flamePin = A0;  // Flame sensor pin
+const int mq2Pin = A1;    // MQ-2 smoke sensor pin
+const int buzzerPin = 9;   // Buzzer pin
+
+void setup() {
+  Serial.begin(9600);      // Start Serial Monitor
+  BTSerial.begin(9600);    // Start Bluetooth communication
+  pinMode(buzzerPin, OUTPUT); // Set buzzer pin as output
+}
+
+void loop() {
+  int flameValue = analogRead(flamePin);
+  int mq2Value = analogRead(mq2Pin);
+
+  // Print the flame value and smoke value to the Serial Monitor
+  Serial.print("Flame value: ");
+  Serial.println(flameValue);
+  Serial.print("MQ-2 value (smoke): ");
+  Serial.println(mq2Value);
+
+  bool fireDetected = flameValue < 300; // Adjust threshold based on testing
+  bool smokeDetected = mq2Value > 400;  // Adjust threshold based on testing
+
+  if (fireDetected) {
+    String message = "Fire detected!";
+    BTSerial.println(message); // Send alert via Bluetooth
+    Serial.println(message);    // Print alert to Serial Monitor
+    tone(buzzerPin, 1000);     // Sound the buzzer at 1000 Hz
+    delay(5000); // Wait before sending the next alert
+    noTone(buzzerPin);          // Stop the buzzer
+  } else if (smokeDetected) {
+    String message = "Smoke detected!";
+    BTSerial.println(message); // Send alert via Bluetooth
+    Serial.println(message);    // Print alert to Serial Monitor
+    tone(buzzerPin, 1000);     // Sound the buzzer at 1000 Hz
+    delay(5000); // Wait before sending the next alert
+    noTone(buzzerPin);          // Stop the buzzer
+  } else {
+    Serial.println("No fire or smoke detected."); // Print when no fire or smoke is detected
+    noTone(buzzerPin);          // Ensure the buzzer is off
+  }
+
+  delay(1000); // Check every second
+}
